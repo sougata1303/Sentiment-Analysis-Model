@@ -15,11 +15,9 @@ from sklearn.metrics import classification_report, accuracy_score, confusion_mat
 import warnings
 warnings.filterwarnings('ignore')
 
-# Load dataset
 df = pd.read_csv("data.csv")
 
-# Drop rows with missing text or sentiment
-df.dropna(subset=["text", "sentiment"], inplace=True)
+df.dropna(subset=["text", "sentiment"], inplace=True)# Drop rows with missing text or sentiment
 
 # Ensure column names are consistent
 df.columns = [col.strip().lower() for col in df.columns]
