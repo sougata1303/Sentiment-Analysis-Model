@@ -3,7 +3,7 @@ import json
 import joblib
 import re
 
-model = joblib.load("sentiment_nb_model.pkl")
+model = joblib.load("sentiment_svm_model.pkl")
 
 def clean_text(text):
     return re.sub(r"[^a-zA-Z\s]", "", text.lower().strip())
