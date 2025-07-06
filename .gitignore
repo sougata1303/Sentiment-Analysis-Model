@@ -1,0 +1,66 @@
+# --- Python virtual environments ---
+env/
+venv/
+ENV/
+.env/
+.python-version
+
+# --- Python bytecode and cache files ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Jupyter Notebook checkpoints ---
+.ipynb_checkpoints/
+
+# --- Environment variables / secrets ---
+.env
+*.env
+
+# --- Data files ---
+*.csv
+*.tsv
+*.json
+*.log
+*.db
+
+# --- Machine learning artifacts ---
+*.pkl
+*.joblib
+*.h5
+*.model
+mlruns/
+mlartifacts/
+sentiment_nb_model.pkl
+
+# --- Application folders you might not want in repo ---
+data/
+logs/
+temp/
+cache/
+
+# --- Kafka related (if storing logs or temp state locally) ---
+kafka-logs/
+zookeeper-logs/
+kafka/
+
+# --- OS-generated files ---
+.DS_Store
+Thumbs.db
+
+# --- IDEs / Editors ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# --- Flask / Web ---
+instance/
+*.sqlite
+*.db
+*.bak
+*.pid
+
+# --- Misc ---
+nltk_data/
+nltk.settings.py
