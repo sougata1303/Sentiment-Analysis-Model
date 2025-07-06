@@ -9,13 +9,11 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 import warnings
 warnings.filterwarnings('ignore')
-
-
 
 # Load dataset
 df = pd.read_csv("data.csv")
@@ -26,7 +24,6 @@ df.dropna(subset=["text", "sentiment"], inplace=True)
 # Ensure column names are consistent
 df.columns = [col.strip().lower() for col in df.columns]
 
-# Initialize NLP tools
 stop_words = set(stopwords.words('english'))
 lemmatizer = WordNetLemmatizer()
 
@@ -52,19 +49,19 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, stratify=y, test_size=0.2, random_state=42
 )
 
-# Pipeline: TF-IDF + Naive Bayes
+# Pipeline: TF-IDF + SVM
 pipeline = Pipeline([
     ("tfidf", TfidfVectorizer(
         ngram_range=(1, 3),
         max_features=25000,
         stop_words='english'
     )),
-    ("clf", MultinomialNB())
+    ("clf", LinearSVC())  # SVM classifier
 ])
 
 # MLflow setup
-mlflow.set_tracking_uri("http://127.0.0.1:5000")  # local MLflow server
-mlflow.set_experiment("sentiment_analysis")
+mlflow.set_tracking_uri("http://127.0.0.1:5000")
+mlflow.set_experiment("sentiment_analysis_svm")
 mlflow.sklearn.autolog()
 
 # Training & Logging
@@ -83,4 +80,4 @@ with mlflow.start_run():
     mlflow.log_artifact("data.csv")
 
     # Save model
-    joblib.dump(pipeline, "sentiment_nb_model.pkl")
+    joblib.dump(pipeline, "sentiment_svm_model.pkl")
