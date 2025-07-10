@@ -54,7 +54,7 @@ pipeline = Pipeline([
         max_features=25000,
         stop_words='english'
     )),
-    ("clf", LinearSVC())  # SVM classifier
+    ("clf", LinearSVC()) 
 ])
 
 # MLflow setup

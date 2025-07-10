@@ -12,26 +12,27 @@ producer = KafkaProducer(
     value_serializer=lambda v: json.dumps(v).encode('utf-8')
 )
 
-# Route: Home / Dashboard
+# Dashboard (renders your HTML)
 @app.route('/')
 def index():
     return render_template('dashboard.html')
 
-# Route: Submit Feedback
+# Submit Feedback (from frontend form)
 @app.route('/submit', methods=['POST'])
 def submit():
     text = request.form.get('feedback')
-    print(f"[Flask] Submitted feedback: {text}")  # ✅ Debug line
+    print(f"[Flask] Submitted feedback: {text}")  
+    
     producer.send('feedback_topic', {"text": text})
     producer.flush()
     return jsonify({"status": "sent"})
 
-# Route: Get Processed Data
+# Send only the latest feedback to frontend
 @app.route('/data')
 def data():
-    return jsonify(messages[-100:])
+    return jsonify([messages[-1]] if messages else [])
 
-# Kafka Consumer in Background
+# Kafka Consumer Thread (receives sentiment-predicted messages)
 def consume_feedback():
     consumer = KafkaConsumer(
         "feedback_with_sentiment",
@@ -39,10 +40,10 @@ def consume_feedback():
         value_deserializer=lambda m: json.loads(m.decode('utf-8'))
     )
     for msg in consumer:
-        print(f"[Flask] Received prediction: {msg.value}")  # ✅ Debug line
+        print(f"[Flask] Received prediction: {msg.value}")
         messages.append(msg.value)
 
-# Start Consumer Thread
+# Start background consumer thread
 threading.Thread(target=consume_feedback, daemon=True).start()
 
 if __name__ == '__main__':

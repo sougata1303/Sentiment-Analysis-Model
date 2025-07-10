@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sentiment Feedback Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Live Sentiment Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -45,91 +44,93 @@
       background-color: #0056b3;
     }
 
-    #chart-container {
-      width: 80%;
+    #latest-feedback-container {
+      width: 60%;
       margin: 40px auto;
       background: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+
+    .sentiment {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .feedback-text {
+      font-size: 20px;
+      margin-top: 15px;
+      color: #444;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
 
-  <h1>Customer Feedback Sentiment Dashboard</h1>
+  <h1>Customer Feedback</h1>
 
-  <form id="feedbackForm">
+  <form id="feedbackForm" autocomplete="off">
     <input type="text" name="feedback" placeholder="Enter your feedback..." required>
     <button type="submit">Submit</button>
   </form>
 
-  <div id="chart-container">
-    <canvas id="chart"></canvas>
+  <!-- Latest feedback display only -->
+  <div id="latest-feedback-container" style="display: none;">
+    <div class="feedback-text" id="feedbackText"></div>
+    <div class="sentiment" id="sentimentResult"></div>
   </div>
 
   <script>
     const form = document.getElementById('feedbackForm');
-    let chart = null;
+    const feedbackContainer = document.getElementById('latest-feedback-container');
+    const feedbackTextEl = document.getElementById('feedbackText');
+    const sentimentEl = document.getElementById('sentimentResult');
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
       const formData = new FormData(form);
-      await fetch('/submit', {
+      const feedbackText = formData.get('feedback');
+
+      const response = await fetch('/submit', {
         method: 'POST',
         body: formData
       });
+
+      const res = await response.json();
+      if (res.status === "sent") {
+        setTimeout(fetchLatestFeedback, 3000);
+      }
+
       form.reset();
     });
 
-    async function updateChart() {
+    async function fetchLatestFeedback() {
       const res = await fetch('/data');
       const data = await res.json();
-      console.log("Chart data:", data);  // Debug: View incoming data
+      if (data.length === 0) return;
 
-      const counts = {Positive: 0, Neutral: 0, Negative: 0};
+      const latest = data[data.length - 1];
+      const feedbackText = latest.text;
+      const sentiment = latest.prediction.toLowerCase();
 
-      data.forEach(item => {
-        const sentiment = item.prediction.toLowerCase();
-        if (sentiment === 'positive') counts.Positive++;
-        else if (sentiment === 'neutral') counts.Neutral++;
-        else if (sentiment === 'negative') counts.Negative++;
-      });
-
-      const chartData = {
-        labels: Object.keys(counts),
-        datasets: [{
-          label: 'Sentiment Count',
-          data: Object.values(counts),
-          backgroundColor: ['green', 'gray', 'red']
-        }]
-      };
-
-      const ctx = document.getElementById('chart').getContext('2d');
-      if (chart) {
-        chart.data = chartData;
-        chart.update();
-      } else {
-        chart = new Chart(ctx, {
-          type: 'bar',
-          data: chartData,
-          options: {
-            responsive: true,
-            scales: {
-              y: {
-                beginAtZero: true,
-                ticks: {
-                  stepSize: 1
-                }
-              }
-            }
-          }
-        });
+      let color = '', emoji = '', label = '';
+      if (sentiment === 'positive') {
+        color = 'green'; emoji = '😊'; label = 'Positive';
+      } else if (sentiment === 'neutral') {
+        color = 'gray'; emoji = '😐'; label = 'Neutral';
+      } else if (sentiment === 'negative') {
+        color = 'red'; emoji = '😞'; label = 'Negative';
       }
+
+      feedbackTextEl.textContent = `${feedbackText}`;
+      sentimentEl.innerHTML = `<span style="color:${color}">${label}</span> ${emoji}`;
+      feedbackContainer.style.display = 'block';
     }
 
-    setInterval(updateChart, 3000);
-    window.onload = updateChart;
+    // Optional: refresh automatically
+    setInterval(fetchLatestFeedback, 5000);
   </script>
 
 </body>
